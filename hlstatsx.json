@@ -1,0 +1,95 @@
+{
+  "jpsType": "install",
+  "jpsVersion": "0.99",
+  "application": {
+    "id": "hlstatsx",
+    "name": "hlstatsx ce - beta",
+    "homepage": "https://bitbucket.org/Maverick_of_UC/hlstatsx-community-edition/wiki/Home",
+    "version": "0,1",
+    "logo": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/7b/7b82405a51796f84f7ef071dc1ced4af44471c89_full.jpg",
+    "description": {
+      "text": "HLXCE is an open-source project which accepts log files in the HL Log Standard format, stores them in a MySQL database and then provides in-game and web-based ranking statistics. HLXCE utilizes many standard technologies available on many shared hosting platforms which gives all communities the ability to provide statistics for their players. More information about the project can be found on the Getting Started page."
+    },
+    "env": {
+      "topology": {
+        "nodes": [
+          {
+            "nodeType": "docker",
+            "fixedCloudlets": 1,
+            "flexibleCloudlets": 4,
+            "nodeGroup": "bl",
+            "docker": {
+              "image": "crinis/hlxce:latest",
+              "links": [
+                "sqldb:db",
+                "cp:daemon"
+              ],
+              "env": {
+                "DB_HOST": "db",
+                "DB_USERNAME": "hlxce",
+                "DB_PASSWORD": "${globals.password}",
+                "DB_NAME": "hlxce",
+                "UPDATE_DB": "true"
+              }
+            }
+          },
+          {
+            "nodeType": "docker",
+            "fixedCloudlets": 1,
+            "flexibleCloudlets": 4,
+            "nodeGroup": "cp",
+            "docker": {
+              "image": "crinis/hlxce-daemon",
+              "links": ["sqldb:db"],
+              "extip": true,
+              "env": {
+                "DB_HOST": "db",
+                "DB_USERNAME": "hlxce",
+                "DB_PASSWORD": "${globals.password}",
+                "DB_NAME": "hlxce"
+              }
+            }
+          },
+          {
+            "nodeType": "docker",
+            "fixedCloudlets": 1,
+            "flexibleCloudlets": 4,
+            "nodeGroup": "sqldb",
+            "docker": {
+              "image": "mariadb:latest",
+              "volumes": ["/var/lib/mysql"],
+              "env": {
+                "MYSQL_USER": "hlxce",
+                "MYSQL_PASSWORD": "${globals.password}",
+                "MYSQL_DATABASE": "hlxce",
+                "MYSQL_ROOT_PASSWORD": "${globals.password}"
+              }
+            }
+          },
+          {
+            "nodeType": "docker",
+            "fixedCloudlets": 1,
+            "flexibleCloudlets": 4,
+            "nodeGroup": "extra-01",
+            "docker": {
+              "image": "phpmyadmin/phpmyadmin:latest",
+              "links": ["sqldb:db"],
+              "env": {
+                "PMA_HOST": "db",
+                "PMA_PORT": "3306"
+              }
+            }
+          }
+        ],
+        "ssl": true
+      }
+    },
+    "success": {
+      "text": "user: hlxce</br>password: ${globals.password}",
+      "email": "user: hlxce</br>password: ${globals.password}"
+    },
+	"globals": {
+      "password": "${user.appPassword}"
+    }
+  }
+}
